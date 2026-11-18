@@ -7,18 +7,23 @@ app = Flask(__name__)
 
 weather_classes = ['clear', 'cloudy', 'drizzly', 'foggy', 'hazey', 'misty', 'rainy', 'smokey', 'thunderstorm']
 
-def load_model(model_path = 'model/model.pkl'):
-	return pickle.load(open(model_path, 'rb'))
+def load_model(model_path='model/model.pkl'):
+    with open(model_path, 'rb') as f:
+        return pickle.load(f)
+
 
 def classify_weather(features):
-	model = load_model()
-	start = time.time()
-	prediction_index = model.predict(features)[0]
-	latency = round((time.time() - start) * 1000, 2) #we are here
-	prediction = weather_classes[1]
-	
-	return prediction, latency
+    model = load_model()
+    start = time.time()
+    raw_prediction = model.predict(features)[0]
+    latency = round((time.time() - start) * 1000, 2) #we are here
 
+    if isinstance(raw_prediction, str) and raw_prediction in weather_classes:
+        prediction = raw_prediction
+    else:
+        prediction = weather_classes[int(raw_prediction)]
+
+    return prediction, latency
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
