@@ -3,7 +3,6 @@ import sys
 import unittest
 import numpy as np
 
-# Ensure the project root (where app.py lives) is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app import app, classify_weather, load_model
@@ -28,9 +27,8 @@ class TestUnit(unittest.TestCase):
             'clouds': '9',
         }
         response = self.client.post('/', data=form_data)
-        # Verify the app handles the missing field gracefully without an unhandled 500 crash
-        self.assertNotEqual(response.status_code, 500)
-        self.assertIn(response.status_code, [200, 400, 422])
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Error processing input:', response.data)
 
     # Complete this function to test that the model can be loaded correctly
     def test_model_can_be_loaded(self):
