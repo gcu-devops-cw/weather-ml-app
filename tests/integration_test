@@ -1,0 +1,50 @@
+import os
+import sys
+import unittest
+
+# Add project root (where app.py is located) to Python's module search path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from app import app
+
+
+VALID_WEATHER_CLASSES = [
+    'clear',
+    'cloudy',
+    'drizzly',
+    'foggy',
+    'hazey',
+    'misty',
+    'rainy',
+    'smokey',
+    'thunderstorm',
+]
+
+
+class IntegrationTest(unittest.TestCase):
+    def setUp(self):
+        app.testing = True
+        self.client = app.test_client()
+
+    # Complete the test(s) below per comments in integration_test.py
+    def test_end_to_end_model_prediction_rendering(self):
+        # Verify initial page loads
+        get_response = self.client.get('/')
+        self.assertEqual(get_response.status_code, 200)
+
+        # Submit sample weather features and verify ML classification result renders
+        sample_inputs = {
+            'temperature': '15.5',
+            'pressure': '1008.2',
+            'humidity': '82.0',
+        }
+        post_response = self.client.post('/', data=sample_inputs, follow_redirects=True)
+        self.assertEqual(post_response.status_code, 200)
+
+        html = post_response.data.decode('utf-8').lower()
+        self.assertTrue(len(html) > 0)
+        self.assertTrue(any(category in html for category in VALID_WEATHER_CLASSES))
+
+
+if __name__ == '__main__':
+    unittest.main()
