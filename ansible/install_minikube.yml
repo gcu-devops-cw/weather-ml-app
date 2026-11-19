@@ -1,0 +1,33 @@
+- name: Install and start Minikube on the Production Server
+  hosts: localhost
+  user: ubuntu
+  become: yes
+
+  tasks:
+  - name: 1. Download Minikube
+    shell:
+      cmd: curl -Lo /tmp/minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+
+  - name: 2. Make Minikube executable
+    file:
+      path: /tmp/minikube
+      mode: '755'
+
+  - name: 3. Move Minikube into /usr/local/bin
+    shell:
+      cmd: mv /tmp/minikube /usr/local/bin/minikube
+
+  - name: 4. Start Minikube (as ubuntu, not root)
+    become: no
+    shell:
+      cmd: minikube start --driver=docker
+
+  - name: 5. Check the Kubernetes node is running
+    become: no
+    shell:
+      cmd: kubectl get nodes
+    register: nodes
+
+  - name: 6. Show nodes
+    debug:
+      msg: "{{ nodes.stdout_lines }}"

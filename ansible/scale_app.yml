@@ -1,0 +1,27 @@
+- name: Scale the weather app for rolling updates
+  hosts: localhost
+  user: ubuntu
+  become: no
+
+  tasks:
+  - name: 1. Scale the deployment to 3 replicas
+    shell:
+      cmd: kubectl scale deployment/weather-ml-app --replicas=3
+
+  - name: 2. Wait for all replicas to be ready
+    shell:
+      cmd: kubectl rollout status deployment/weather-ml-app --timeout=300s
+
+  - name: 3. Get deployment
+    shell:
+      cmd: kubectl get deployment weather-ml-app
+    register: deploy
+
+  - name: 4. Get pods
+    shell:
+      cmd: kubectl get pods
+    register: pods
+
+  - name: 5. Show results
+    debug:
+      msg: "{{ deploy.stdout_lines + pods.stdout_lines }}"

@@ -1,0 +1,33 @@
+- name: Create a Service for the weather app
+  hosts: localhost
+  user: ubuntu
+  become: no
+
+  vars:
+   k8sPath: /home/ubuntu/weather-ml-app/k8s/
+
+  tasks:
+  - name: 1. Apply the service file
+    shell:
+      cmd: kubectl apply -f "{{ k8sPath }}service.yaml"
+
+  - name: 2. Get services
+    shell:
+      cmd: kubectl get services
+    register: services
+
+  - name: 3. Show services
+    debug:
+      msg: "{{ services.stdout_lines }}"
+
+  - name: 4. Test the app through the Service
+    shell:
+      cmd: curl -s $(minikube ip):30080
+    register: app
+    retries: 10
+    delay: 5
+    until: app.rc == 0
+
+  - name: 5. Show app response
+    debug:
+      msg: "{{ app.stdout_lines[:5] }}"
