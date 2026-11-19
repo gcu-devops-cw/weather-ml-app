@@ -1,0 +1,47 @@
+- name: Install kubectl on the Production Server
+  hosts: localhost
+  user: ubuntu
+  become: yes
+
+  tasks:
+  - name: 1. Update APT Package Manager
+    apt:
+      update_cache: yes
+
+  - name: 2. Install dependency packages
+    apt:
+      name={{ item }}
+    with_items:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
+
+  - name: 3. Create keyrings folder
+    shell:
+      cmd: mkdir -p -m 755 /etc/apt/keyrings
+
+  - name: 4. Get Kubernetes APT Key
+    shell:
+      cmd: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor --yes -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+  - name: 5. Add Kubernetes APT Repository
+    shell:
+      cmd: echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
+
+  - name: 6. Update Package Manager
+    apt:
+      update_cache: yes
+
+  - name: 7. Install kubectl
+    shell:
+      cmd: snap install kubectl --classic
+
+  - name: 8. Check kubectl is installed
+    shell:
+      cmd: kubectl version --client
+    register: kubectl_version
+
+  - name: 9. Show kubectl version
+    debug:
+      msg: "{{ kubectl_version.stdout_lines }}"

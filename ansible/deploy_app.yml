@@ -1,0 +1,25 @@
+- name: Deploy the weather app image from Docker Hub to Kubernetes
+  hosts: localhost
+  user: ubuntu
+  become: no
+
+  vars:
+   k8sPath: /home/ubuntu/weather-ml-app/k8s/
+
+  tasks:
+  - name: 1. Apply the deployment file
+    shell:
+      cmd: kubectl apply -f "{{ k8sPath }}deployment.yaml"
+
+  - name: 2. Wait for the deployment to be ready
+    shell:
+      cmd: kubectl rollout status deployment/weather-ml-app --timeout=300s
+
+  - name: 3. Get pods
+    shell:
+      cmd: kubectl get pods
+    register: pods
+
+  - name: 4. Show pods
+    debug:
+      msg: "{{ pods.stdout_lines }}"
