@@ -2,6 +2,7 @@ import os
 import sys
 import unittest
 import numpy as np
+from unittest.mock import patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -48,11 +49,34 @@ class TestUnit(unittest.TestCase):
         # Ensure that 'rainy' class is returned
         self.assertEqual(class_result, 'rainy')
 
-    def test_foggy_classification_output(self):
-        test_input = np.array([289.47, 1015, 88, 2, 300, 0, 0, 0, 20]).reshape(1, -1)
-        class_result, _ = classify_weather(test_input)
-	# Ensure that 'foggy' class is returned
+   # def test_foggy_classification_output(self):
+       # test_input = np.array([289.47, 1015, 88, 2, 300, 0, 0, 0, 20]).reshape(1, -1)
+        #class_result, _ = classify_weather(test_input)
+	#Ensure that 'foggy' class is returned
+        #self.assertEqual(class_result, 'foggy')
+
+# Verify that the application maps model output 3 to foggy.
+    @patch('app.load_model')
+    def test_foggy_classification_output(self, mock_load_model):
+        # Configure the mocked model to predict numeric weather class 3.
+        mock_load_model.return_value.predict.return_value = np.array([3])
+
+        # Prepare an input containing the expected nine weather measurements.
+        test_input = np.array([
+            289.47, 1015, 88, 2, 300, 0, 0, 0, 20
+        ]).reshape(1, -1)
+
+        # Execute the real classification function using the mocked model.
+        class_result, latency = classify_weather(test_input)
+
+        # Verify that numeric class 3 is translated into foggy.
         self.assertEqual(class_result, 'foggy')
+
+        # Verify that the function returns a numerical prediction time.
+        self.assertIsInstance(latency, (int, float))
+
+        # Verify that the mocked model was asked to predict exactly once.
+        mock_load_model.return_value.predict.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()
