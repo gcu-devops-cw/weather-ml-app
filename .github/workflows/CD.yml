@@ -7,7 +7,7 @@ on:
 
 env:
   IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app
-  TAG: ${{ github.sha }}
+  TAG: ${{ github.event.workflow_run.head_sha }}
 
 jobs:
   deploy:
