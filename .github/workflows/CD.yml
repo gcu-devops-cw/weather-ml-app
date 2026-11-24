@@ -1,0 +1,26 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+env:
+  IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app
+  TAG: v1
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+    steps:
+      - name: Update the deployment (rolling update)
+        run: kubectl set image deployment/weather-ml-app weather-ml-app=$IMAGE:$TAG
+
+      - name: Wait for rollout to finish
+        run: kubectl rollout status deployment/weather-ml-app --timeout=120s
+
+      - name: Show result
+        run: |
+          kubectl get pods
+          kubectl get svc
