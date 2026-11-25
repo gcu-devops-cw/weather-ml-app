@@ -49,4 +49,12 @@ jobs:
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Push image to DockerHub
-        run: docker push $IMAGE:$TAG
+        run: |
+          # Publish the commit-specific image used by CD.
+          docker push "$IMAGE:$TAG"
+
+          # Create the version 2 tag for the coursework demonstration.
+          docker tag "$IMAGE:$TAG" "$IMAGE:v2"
+
+          # Publish the version 2 image to Docker Hub.
+          docker push "$IMAGE:v2"
